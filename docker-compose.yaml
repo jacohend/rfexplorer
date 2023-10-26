@@ -1,0 +1,49 @@
+version: "3.6"
+
+services:
+
+  spectrum:
+    build: .
+    ports:
+      - "8080:8080"
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
+    environment:
+      FLASK_ENV: 'development'
+      FLASK_APP: 'spectrum.py'
+      REDIS_URL: 'redis://redis:6379/0'
+      INFLUXDB_TOKEN: 'blahblahblahdev'
+      INFLUXDB_ORG: 'rfexplorer'
+      INFLUXDB_BUCKET: 'spectrum'
+      INFLUXDB_HOST: 'http://influxdb:8086'
+      INFLUXDB_DATABASE: 'rfexplorer'
+    restart: always
+
+
+  influxdb:
+      image: influxdb:latest
+      ports:
+          - "8086:8086"
+      volumes:
+          - ~/.influx:/var/lib/influxdb2
+          - ~/.influx:/etc/influxdb2
+      environment:
+          DOCKER_INFLUXDB_INIT_MODE: 'setup'
+          DOCKER_INFLUXDB_INIT_USERNAME: 'rfexplorer'
+          DOCKER_INFLUXDB_INIT_PASSWORD: 'rfexplorer'
+          DOCKER_INFLUXDB_INIT_ORG: 'rfexplorer'
+          DOCKER_INFLUXDB_INIT_BUCKET: 'spectrum'
+          DOCKER_INFLUXDB_INIT_RETENTION: '104w'
+          DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: 'blahblahblahdev'
+      deploy:
+          mode: replicated
+          replicas: 1
+          restart_policy:
+              condition: on-failure
+              delay: 1s
+              window: 120s
+      logging:
+          driver: "json-file"
+          options:
+              max-size: "1g"
+              max-file: "5"

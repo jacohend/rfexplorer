@@ -1,0 +1,3 @@
+RFExplorer
+pyserial
+influxdb-client
